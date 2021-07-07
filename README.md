@@ -1,2 +1,3 @@
 Группа 2021-06
-Anna Molybog
+Anna Molyboh
+anna.molybog@gmail.com
