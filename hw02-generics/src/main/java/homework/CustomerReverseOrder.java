@@ -1,18 +1,17 @@
 package homework;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class CustomerReverseOrder {
 
-    private Queue<Customer> customers = Collections.asLifoQueue(new LinkedList<>());
+    private final Deque<Customer> customers = new ArrayDeque<>();
 
     public void add(Customer customer) {
-        customers.add(customer);
+        customers.push(customer);
     }
 
     public Customer take() {
-        return customers.poll();
+        return customers.pop();
     }
 }
