@@ -30,20 +30,25 @@ public class TestRunner {
 
         testStatistic.setTotalAmountOfTests(methodsWrapper.getTestMethods().size());
         for (String testMethod: methodsWrapper.getTestMethods()) {
-            for (String beforeMethod: methodsWrapper.getBeforeMethods()) {
-                ReflectionHelper.callMethod(testClazz, beforeMethod);
-            }
-
             try {
-                ReflectionHelper.callMethod(testClazz, testMethod);
-                testStatistic.addTestStatus(testMethod, "PASSED");
+                for (String beforeMethod: methodsWrapper.getBeforeMethods()) {
+                    ReflectionHelper.callMethod(testClazz, beforeMethod);
+                }
+
+                try {
+                    ReflectionHelper.callMethod(testClazz, testMethod);
+                    testStatistic.addTestStatus(testMethod, "PASSED");
+                } catch (Exception exception) {
+                    testStatistic.addTestStatus(testMethod, "FAILED", exception.getMessage());
+                }
             } catch (Exception exception) {
-                testStatistic.addTestStatus(testMethod, "FAILED", exception.getMessage());
+                throw exception;
+            } finally {
+                for (String afterMethod: methodsWrapper.getAfterMethods()) {
+                    ReflectionHelper.callMethod(testClazz, afterMethod);
+                }
             }
 
-            for (String afterMethod: methodsWrapper.getAfterMethods()) {
-                ReflectionHelper.callMethod(testClazz, afterMethod);
-            }
         }
     }
 
