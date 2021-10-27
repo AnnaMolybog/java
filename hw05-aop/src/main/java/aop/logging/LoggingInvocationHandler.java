@@ -1,27 +1,25 @@
 package aop.logging;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 public class LoggingInvocationHandler implements InvocationHandler{
-    private static final String LOG_ANNOTATION = "aop.annotation.Log";
     private final Object myClass;
+    private List<String> methodsToLog;
 
-    public LoggingInvocationHandler(Object myClass) {
+    public LoggingInvocationHandler(Object myClass, List<String> methodsToLog) {
         this.myClass = myClass;
+        this.methodsToLog = methodsToLog;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Annotation[] annotations = method.getDeclaredAnnotations();
-        Arrays.stream(annotations).forEach(annotation -> {
-            String annotationName = annotation.annotationType().getName();
-            if (annotationName != null && annotationName == LOG_ANNOTATION) {
-                System.out.println("invoking method: " + method.getName() + ", params: " + Arrays.toString(args));
-            }
-        });
+        if (methodsToLog.contains(method.getName())) {
+            System.out.println("invoking method: " + method.getName() + ", params: " + Arrays.toString(args));
+        }
+
         return method.invoke(myClass, args);
     }
 }
