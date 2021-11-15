@@ -1,31 +1,31 @@
 package otus.atm.service;
 
-import otus.atm.entity.Balance;
+import otus.atm.entity.BanknoteInterface;
 import otus.atm.enums.Transaction;
-import otus.atm.exception.InvalidInputException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class TransactionProcessor {
-    private Balance balance;
-    private final ArrayList<BalanceTransactionInterface> balanceTransactions;
+    private List<BanknoteInterface> banknotes;
+    private final List<BalanceTransactionInterface> balanceTransactions;
 
     public TransactionProcessor() {
-        this.balance = new Balance();
+        this.banknotes = new ArrayList<>();
         this.balanceTransactions = new ArrayList<>();
         this.balanceTransactions.add(new DepositTransaction());
         this.balanceTransactions.add(new WithdrawTransaction());
         this.balanceTransactions.add(new CheckBalanceTransaction());
     }
 
-    public Balance executeTransaction(Transaction transaction, int amount) throws Exception {
+    public List<BanknoteInterface> executeTransaction(Transaction transaction, int amount) throws Exception {
         for (BalanceTransactionInterface balanceTransaction: this.balanceTransactions) {
             if (balanceTransaction.support(transaction) && balanceTransaction.isInputValid(amount)) {
-                this.balance = balanceTransaction.process(this.balance, transaction, amount);
-                return this.balance;
+                this.banknotes = balanceTransaction.process(this.banknotes, transaction, amount);
+                return this.banknotes;
             }
         }
 
-        throw new InvalidInputException();
+        throw new Exception("Transaction or amount value are invalid");
     }
 }

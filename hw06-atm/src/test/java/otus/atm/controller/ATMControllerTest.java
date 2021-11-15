@@ -4,16 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import otus.atm.enums.Denomination;
+import otus.atm.entity.BanknoteInterface;
 import otus.atm.enums.Transaction;
-import otus.atm.exception.InsufficientFundsException;
-import otus.atm.exception.InvalidInputException;
-import otus.atm.exception.MinimalDenominationException;
 import otus.atm.wrapper.ErrorResponseWrapper;
 import otus.atm.wrapper.SuccessResponseWrapper;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
 public class ATMControllerTest {
     private ATMController atm;
@@ -31,12 +28,25 @@ public class ATMControllerTest {
             this.atm.executeTransaction(Transaction.DEPOSIT_5, 10),
             SuccessResponseWrapper.class
         );
-        Map<Denomination, Integer> availableBanknotes = response.getAvailableBanknotes();
+        List<BanknoteInterface> availableBanknotes = response.getAvailableBanknotes();
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals(10050, response.getTotalBalance());
-        Assertions.assertTrue(availableBanknotes.containsKey(Denomination.BANKNOTE_5));
-        Assertions.assertTrue(availableBanknotes.containsKey(Denomination.BANKNOTE_500));
-        Assertions.assertEquals(10, availableBanknotes.get(Denomination.BANKNOTE_5));
+        Assertions.assertEquals(
+            10,
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_5.getDenomination())
+                .findFirst()
+                .get()
+                .getCount()
+        );
+        Assertions.assertEquals(
+            20,
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == (Transaction.DEPOSIT_500.getDenomination()))
+                .findFirst()
+                .get()
+                .getCount()
+        );
     }
 
     @Test
@@ -47,7 +57,7 @@ public class ATMControllerTest {
                 ErrorResponseWrapper.class
         );
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(InvalidInputException.errorMessage, response.getMessage());
+        Assertions.assertEquals("Transaction or amount value are invalid", response.getMessage());
     }
 
     @Test
@@ -63,13 +73,42 @@ public class ATMControllerTest {
         );
 
         Assertions.assertTrue(response.isSuccess());
-        Map<Denomination, Integer> availableBanknotes = response.getAvailableBanknotes();
+        List<BanknoteInterface> availableBanknotes = response.getAvailableBanknotes();
         Assertions.assertEquals(3100, response.getTotalBalance());
-        Assertions.assertEquals(5, availableBanknotes.get(Denomination.BANKNOTE_500));
-        Assertions.assertEquals(3, availableBanknotes.get(Denomination.BANKNOTE_200));
-        Assertions.assertFalse(availableBanknotes.containsKey(Denomination.BANKNOTE_20));
-        Assertions.assertFalse(availableBanknotes.containsKey(Denomination.BANKNOTE_10));
-        Assertions.assertFalse(availableBanknotes.containsKey(Denomination.BANKNOTE_50));
+        Assertions.assertEquals(
+            5,
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_500.getDenomination())
+                .findFirst()
+                .get()
+                .getCount()
+        );
+        Assertions.assertEquals(
+            3,
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == (Transaction.DEPOSIT_200.getDenomination()))
+                .findFirst()
+                .get()
+                .getCount()
+        );
+        Assertions.assertTrue(
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_20.getDenomination())
+                .findFirst()
+                .isEmpty()
+        );
+        Assertions.assertTrue(
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_10.getDenomination())
+                .findFirst()
+                .isEmpty()
+        );
+        Assertions.assertTrue(
+            availableBanknotes.stream()
+                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_50.getDenomination())
+                .findFirst()
+                .isEmpty()
+        );
     }
 
     @Test
@@ -81,7 +120,7 @@ public class ATMControllerTest {
         );
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(InsufficientFundsException.errorMessage, response.getMessage());
+        Assertions.assertEquals("Insufficient funds in the account", response.getMessage());
     }
 
     @Test
@@ -93,7 +132,7 @@ public class ATMControllerTest {
         );
 
         Assertions.assertFalse(response.isSuccess());
-        Assertions.assertEquals(String.format(MinimalDenominationException.errorMessage, 500), response.getMessage());
+        Assertions.assertEquals(String.format("Minimal denomination is: %d", 500), response.getMessage());
     }
 
     @Test

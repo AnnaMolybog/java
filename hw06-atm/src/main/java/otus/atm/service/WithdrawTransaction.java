@@ -1,28 +1,39 @@
 package otus.atm.service;
 
-import otus.atm.entity.Balance;
-import otus.atm.enums.Denomination;
+import otus.atm.entity.BanknoteInterface;
 import otus.atm.enums.Transaction;
-import otus.atm.exception.InsufficientFundsException;
-import otus.atm.exception.MinimalDenominationException;
 
-import java.util.Map;
+import java.util.List;
 
-public class WithdrawTransaction implements BalanceTransactionInterface {
+public class WithdrawTransaction extends AbstractBalanceTransaction {
     @Override
-    public Balance process(Balance balance, Transaction transaction, int amount) throws Exception {
-        this.checkRetrievalPossibility(amount, balance);
-        while (amount != 0) {
-            for (Map.Entry<Denomination, Integer> banknote: balance.getBanknotes().entrySet()) {
-                int numberOfBanknotesRequired = amount / banknote.getKey().getDenomination();
-                int numberOfBanknotesExistent = Math.min(numberOfBanknotesRequired, banknote.getValue());
+    public List<BanknoteInterface> process(
+        List<BanknoteInterface> banknotes,
+        Transaction transaction,
+        int amount
+    ) throws Exception {
+        this.getBalanceService().sortBanknotesByDenomination(banknotes);
+        this.checkRetrievalPossibility(amount, banknotes);
 
-                balance = balance.update(banknote.getKey(), banknote.getValue() - numberOfBanknotesExistent);
-                amount = amount - banknote.getKey().getDenomination() * numberOfBanknotesExistent;
+        while (amount != 0) {
+            for (BanknoteInterface banknote: banknotes) {
+
+                int numberOfBanknotesRequired = amount / banknote.getDenomination();
+                int numberOfBanknotesExistent = Math.min(numberOfBanknotesRequired, banknote.getCount());
+
+                banknotes = this.getBalanceService().update(
+                    banknotes,
+                    this.getBanknoteFactory().getBanknote(
+                        banknote.getDenomination(),
+                        banknote.getCount() - numberOfBanknotesExistent
+                    )
+                );
+
+                amount = amount - banknote.getDenomination() * numberOfBanknotesExistent;
             }
         }
 
-        return balance.clean();
+        return this.getBalanceService().clean(banknotes);
     }
 
     @Override
@@ -35,14 +46,14 @@ public class WithdrawTransaction implements BalanceTransactionInterface {
         return amount >= 0;
     }
 
-    private void checkRetrievalPossibility(int amount, Balance balance) throws Exception {
-        if (amount > balance.getTotalSum()) {
-            throw new InsufficientFundsException();
+    private void checkRetrievalPossibility(int amount, List<BanknoteInterface> banknotes) throws Exception {
+        if (amount > this.getBalanceService().getTotalSum(banknotes)) {
+            throw new Exception("Insufficient funds in the account");
         }
 
-        int minimalDenomination = balance.getMinimalDenomination();
+        int minimalDenomination = this.getBalanceService().getMinimalDenomination(banknotes);
         if (amount % minimalDenomination != 0) {
-            throw new MinimalDenominationException(minimalDenomination);
+            throw new Exception(String.format("Minimal denomination is: %d", minimalDenomination));
         }
     }
 }

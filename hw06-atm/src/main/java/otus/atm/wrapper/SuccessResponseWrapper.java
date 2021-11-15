@@ -1,12 +1,12 @@
 package otus.atm.wrapper;
 
-import otus.atm.enums.Denomination;
+import otus.atm.entity.BanknoteInterface;
 
-import java.util.Map;
+import java.util.List;
 
 public class SuccessResponseWrapper extends ResponseWrapper {
     private int totalBalance;
-    private Map<Denomination, Integer> availableBanknotes;
+    private List<BanknoteInterface> availableBanknotes;
 
     public int getTotalBalance() {
         return totalBalance;
@@ -16,11 +16,11 @@ public class SuccessResponseWrapper extends ResponseWrapper {
         this.totalBalance = totalBalance;
     }
 
-    public Map<Denomination, Integer> getAvailableBanknotes() {
+    public List<BanknoteInterface> getAvailableBanknotes() {
         return availableBanknotes;
     }
 
-    public void setAvailableBanknotes(Map<Denomination, Integer> availableBanknotes) {
+    public void setAvailableBanknotes(List<BanknoteInterface> availableBanknotes) {
         this.availableBanknotes = availableBanknotes;
     }
 }
