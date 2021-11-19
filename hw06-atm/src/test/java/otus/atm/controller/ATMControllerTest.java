@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.CassetteInterface;
 import otus.atm.enums.Transaction;
 import otus.atm.wrapper.ErrorResponseWrapper;
 import otus.atm.wrapper.SuccessResponseWrapper;
@@ -28,21 +28,21 @@ public class ATMControllerTest {
             this.atm.executeTransaction(Transaction.DEPOSIT_5, 10),
             SuccessResponseWrapper.class
         );
-        List<BanknoteInterface> availableBanknotes = response.getAvailableBanknotes();
+        List<CassetteInterface> availableCassettes = response.getAvailableCassettes();
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals(10050, response.getTotalBalance());
         Assertions.assertEquals(
             10,
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_5.getDenomination())
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == Transaction.DEPOSIT_5.getDenomination())
                 .findFirst()
                 .get()
                 .getCount()
         );
         Assertions.assertEquals(
             20,
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == (Transaction.DEPOSIT_500.getDenomination()))
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == (Transaction.DEPOSIT_500.getDenomination()))
                 .findFirst()
                 .get()
                 .getCount()
@@ -73,39 +73,39 @@ public class ATMControllerTest {
         );
 
         Assertions.assertTrue(response.isSuccess());
-        List<BanknoteInterface> availableBanknotes = response.getAvailableBanknotes();
+        List<CassetteInterface> availableCassettes = response.getAvailableCassettes();
         Assertions.assertEquals(3100, response.getTotalBalance());
         Assertions.assertEquals(
             5,
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_500.getDenomination())
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == Transaction.DEPOSIT_500.getDenomination())
                 .findFirst()
                 .get()
                 .getCount()
         );
         Assertions.assertEquals(
             3,
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == (Transaction.DEPOSIT_200.getDenomination()))
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == (Transaction.DEPOSIT_200.getDenomination()))
                 .findFirst()
                 .get()
                 .getCount()
         );
         Assertions.assertTrue(
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_20.getDenomination())
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == Transaction.DEPOSIT_20.getDenomination())
                 .findFirst()
                 .isEmpty()
         );
         Assertions.assertTrue(
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_10.getDenomination())
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == Transaction.DEPOSIT_10.getDenomination())
                 .findFirst()
                 .isEmpty()
         );
         Assertions.assertTrue(
-            availableBanknotes.stream()
-                .filter(banknote -> banknote.getDenomination() == Transaction.DEPOSIT_50.getDenomination())
+            availableCassettes.stream()
+                .filter(cassette -> cassette.getDenomination() == Transaction.DEPOSIT_50.getDenomination())
                 .findFirst()
                 .isEmpty()
         );

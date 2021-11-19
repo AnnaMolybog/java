@@ -1,12 +1,12 @@
 package otus.atm.wrapper;
 
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.CassetteInterface;
 
 import java.util.List;
 
 public class SuccessResponseWrapper extends ResponseWrapper {
     private int totalBalance;
-    private List<BanknoteInterface> availableBanknotes;
+    private List<CassetteInterface> availableCassettes;
 
     public int getTotalBalance() {
         return totalBalance;
@@ -16,11 +16,11 @@ public class SuccessResponseWrapper extends ResponseWrapper {
         this.totalBalance = totalBalance;
     }
 
-    public List<BanknoteInterface> getAvailableBanknotes() {
-        return availableBanknotes;
+    public List<CassetteInterface> getAvailableCassettes() {
+        return availableCassettes;
     }
 
-    public void setAvailableBanknotes(List<BanknoteInterface> availableBanknotes) {
-        this.availableBanknotes = availableBanknotes;
+    public void setAvailableCassettes(List<CassetteInterface> availableCassettes) {
+        this.availableCassettes = availableCassettes;
     }
 }

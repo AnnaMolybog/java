@@ -1,28 +1,27 @@
 package otus.atm.service;
 
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.CassetteInterface;
 import otus.atm.enums.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransactionProcessor {
-    private List<BanknoteInterface> banknotes;
+public class TransactionService {
+    private List<CassetteInterface> cassettes;
     private final List<BalanceTransactionInterface> balanceTransactions;
 
-    public TransactionProcessor() {
-        this.banknotes = new ArrayList<>();
+    public TransactionService(List<CassetteInterface> cassettes) {
+        this.cassettes = cassettes;
         this.balanceTransactions = new ArrayList<>();
         this.balanceTransactions.add(new DepositTransaction());
         this.balanceTransactions.add(new WithdrawTransaction());
         this.balanceTransactions.add(new CheckBalanceTransaction());
     }
 
-    public List<BanknoteInterface> executeTransaction(Transaction transaction, int amount) throws Exception {
+    public List<CassetteInterface> executeTransaction(Transaction transaction, int amount) throws Exception {
         for (BalanceTransactionInterface balanceTransaction: this.balanceTransactions) {
             if (balanceTransaction.support(transaction) && balanceTransaction.isInputValid(amount)) {
-                this.banknotes = balanceTransaction.process(this.banknotes, transaction, amount);
-                return this.banknotes;
+                return balanceTransaction.process(cassettes, transaction, amount);
             }
         }
 

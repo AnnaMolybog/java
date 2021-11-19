@@ -1,20 +1,21 @@
 package otus.atm.service;
 
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.Cassette;
+import otus.atm.entity.CassetteInterface;
 import otus.atm.enums.Transaction;
 
 import java.util.List;
 
 public class DepositTransaction extends AbstractBalanceTransaction {
     @Override
-    public List<BanknoteInterface> process(
-        List<BanknoteInterface> banknotes,
+    public List<CassetteInterface> process(
+        List<CassetteInterface> cassettes,
         Transaction transaction,
         int amount
     ) throws Exception {
         return this.getBalanceService().add(
-            banknotes,
-            this.getBanknoteFactory().getBanknote(transaction.getDenomination(), amount)
+            cassettes,
+            new Cassette(transaction.getDenomination(), amount)
         );
     }
 

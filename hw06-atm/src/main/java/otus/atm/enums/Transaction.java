@@ -23,4 +23,14 @@ public enum Transaction {
     public int getDenomination() {
         return this.denomination;
     }
+
+    public static boolean isDenominationSupported(int denominationToCheck) {
+        for (Transaction transaction: Transaction.values()) {
+            if(transaction.getDenomination() != 0 && transaction.getDenomination() == denominationToCheck) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

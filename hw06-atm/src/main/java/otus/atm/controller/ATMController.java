@@ -1,23 +1,24 @@
 package otus.atm.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.CassetteInterface;
 import otus.atm.enums.Transaction;
 import otus.atm.service.BalanceService;
 import otus.atm.service.BalanceServiceInterface;
-import otus.atm.service.TransactionProcessor;
+import otus.atm.service.TransactionService;
 import otus.atm.wrapper.ErrorResponseWrapper;
 import otus.atm.wrapper.SuccessResponseWrapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ATMController {
-    private TransactionProcessor transactionProcessor;
-    private BalanceServiceInterface balanceService;
+    private final TransactionService transactionProcessor;
+    private final BalanceServiceInterface balanceService;
 
     public ATMController() {
-        this.transactionProcessor = new TransactionProcessor();
+        this.transactionProcessor = new TransactionService(new ArrayList<>());
         this.balanceService = new BalanceService();
     }
 
@@ -28,12 +29,12 @@ public class ATMController {
     public String executeTransaction(Transaction transaction, int amount) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            List<BanknoteInterface> banknotes = this.transactionProcessor.executeTransaction(transaction, amount);
+            List<CassetteInterface> cassettes = this.transactionProcessor.executeTransaction(transaction, amount);
 
             SuccessResponseWrapper response = new SuccessResponseWrapper();
             response.setSuccess(true);
-            response.setTotalBalance(this.balanceService.getTotalSum(banknotes));
-            response.setAvailableBanknotes(banknotes);
+            response.setTotalBalance(this.balanceService.getTotalSum(cassettes));
+            response.setAvailableCassettes(cassettes);
 
             return mapper.writeValueAsString(response);
         } catch (Exception exception) {

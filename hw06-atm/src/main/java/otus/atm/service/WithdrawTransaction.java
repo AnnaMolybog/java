@@ -1,39 +1,37 @@
 package otus.atm.service;
 
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.Cassette;
+import otus.atm.entity.CassetteInterface;
 import otus.atm.enums.Transaction;
 
 import java.util.List;
 
 public class WithdrawTransaction extends AbstractBalanceTransaction {
     @Override
-    public List<BanknoteInterface> process(
-        List<BanknoteInterface> banknotes,
+    public List<CassetteInterface> process(
+        List<CassetteInterface> cassettes,
         Transaction transaction,
         int amount
     ) throws Exception {
-        this.getBalanceService().sortBanknotesByDenomination(banknotes);
-        this.checkRetrievalPossibility(amount, banknotes);
+        this.getBalanceService().sortCassettesByDenomination(cassettes);
+        this.checkRetrievalPossibility(amount, cassettes);
 
         while (amount != 0) {
-            for (BanknoteInterface banknote: banknotes) {
+            for (CassetteInterface cassette: cassettes) {
 
-                int numberOfBanknotesRequired = amount / banknote.getDenomination();
-                int numberOfBanknotesExistent = Math.min(numberOfBanknotesRequired, banknote.getCount());
+                int numberOfBanknotesRequired = amount / cassette.getDenomination();
+                int numberOfBanknotesExistent = Math.min(numberOfBanknotesRequired, cassette.getCount());
 
-                banknotes = this.getBalanceService().update(
-                    banknotes,
-                    this.getBanknoteFactory().getBanknote(
-                        banknote.getDenomination(),
-                        banknote.getCount() - numberOfBanknotesExistent
-                    )
+                cassettes = this.getBalanceService().update(
+                    cassettes,
+                    new Cassette(cassette.getDenomination(), cassette.getCount() - numberOfBanknotesExistent)
                 );
 
-                amount = amount - banknote.getDenomination() * numberOfBanknotesExistent;
+                amount = amount - cassette.getDenomination() * numberOfBanknotesExistent;
             }
         }
 
-        return this.getBalanceService().clean(banknotes);
+        return this.getBalanceService().clean(cassettes);
     }
 
     @Override
@@ -46,12 +44,12 @@ public class WithdrawTransaction extends AbstractBalanceTransaction {
         return amount >= 0;
     }
 
-    private void checkRetrievalPossibility(int amount, List<BanknoteInterface> banknotes) throws Exception {
-        if (amount > this.getBalanceService().getTotalSum(banknotes)) {
+    private void checkRetrievalPossibility(int amount, List<CassetteInterface> cassettes) throws Exception {
+        if (amount > this.getBalanceService().getTotalSum(cassettes)) {
             throw new Exception("Insufficient funds in the account");
         }
 
-        int minimalDenomination = this.getBalanceService().getMinimalDenomination(banknotes);
+        int minimalDenomination = this.getBalanceService().getMinimalDenomination(cassettes);
         if (amount % minimalDenomination != 0) {
             throw new Exception(String.format("Minimal denomination is: %d", minimalDenomination));
         }

@@ -1,66 +1,66 @@
 package otus.atm.service;
 
-import otus.atm.entity.BanknoteInterface;
+import otus.atm.entity.CassetteInterface;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class BalanceService implements BalanceServiceInterface {
     @Override
-    public List<BanknoteInterface> add(List<BanknoteInterface> banknotes, BanknoteInterface banknote) {
-        banknotes.add(banknotes.stream()
-            .filter(existentBanknote -> existentBanknote.getDenomination() == banknote.getDenomination())
+    public List<CassetteInterface> add(List<CassetteInterface> cassettes, CassetteInterface cassette) {
+        cassettes.add(cassettes.stream()
+            .filter(existentCassette -> existentCassette.getDenomination() == cassette.getDenomination())
             .findAny()
-            .map(existentBanknote -> {
-                existentBanknote.setCount(existentBanknote.getCount() + banknote.getCount());
-                return existentBanknote;
+            .map(existentCassette -> {
+                existentCassette.setCount(existentCassette.getCount() + cassette.getCount());
+                return existentCassette;
             })
-            .orElse(banknote)
+            .orElse(cassette)
         );
 
-        return banknotes;
+        return cassettes;
     }
 
     @Override
-    public List<BanknoteInterface> update(List<BanknoteInterface> banknotes, BanknoteInterface banknote) throws Exception {
-        banknotes.stream()
-            .filter(existentBanknote -> existentBanknote.getDenomination() == banknote.getDenomination())
+    public List<CassetteInterface> update(List<CassetteInterface> cassettes, CassetteInterface cassette) throws Exception {
+        cassettes.stream()
+            .filter(existentCassette -> existentCassette.getDenomination() == cassette.getDenomination())
             .findAny()
-            .map(existentBanknote -> {
-                existentBanknote.setCount(banknote.getCount());
-                return existentBanknote;
+            .map(existentCassette -> {
+                existentCassette.setCount(cassette.getCount());
+                return existentCassette;
             })
             .orElseThrow(() -> new Exception("Banknote was not found"));
 
-        return banknotes;
+        return cassettes;
     }
 
     @Override
-    public List<BanknoteInterface> clean(List<BanknoteInterface> banknotes) {
-        banknotes.removeIf(banknote -> banknote.getCount() == 0);
-        return banknotes;
+    public List<CassetteInterface> clean(List<CassetteInterface> cassettes) {
+        cassettes.removeIf(cassette -> cassette.getCount() == 0);
+        return cassettes;
     }
 
     @Override
-    public int getTotalSum(List<BanknoteInterface> banknotes) {
-        return banknotes.stream()
-            .mapToInt(banknote -> banknote.getDenomination() * banknote.getCount())
+    public int getTotalSum(List<CassetteInterface> cassettes) {
+        return cassettes.stream()
+            .mapToInt(cassette -> cassette.getDenomination() * cassette.getCount())
             .sum();
     }
 
     @Override
-    public int getMinimalDenomination(List<BanknoteInterface> banknotes) throws Exception {
-        if (banknotes.isEmpty()) {
+    public int getMinimalDenomination(List<CassetteInterface> cassettes) throws Exception {
+        if (cassettes.isEmpty()) {
             throw new Exception("balance is empty");
         }
 
-        this.sortBanknotesByDenomination(banknotes);
-        return banknotes.get(banknotes.size() - 1).getDenomination();
+        this.sortCassettesByDenomination(cassettes);
+        return cassettes.get(cassettes.size() - 1).getDenomination();
     }
 
     @Override
-    public List<BanknoteInterface> sortBanknotesByDenomination(List<BanknoteInterface> banknotes) {
-        banknotes.sort(Comparator.comparing(BanknoteInterface::getDenomination).reversed());
-        return banknotes;
+    public List<CassetteInterface> sortCassettesByDenomination(List<CassetteInterface> cassettes) {
+        cassettes.sort(Comparator.comparing(CassetteInterface::getDenomination).reversed());
+        return cassettes;
     }
 }
