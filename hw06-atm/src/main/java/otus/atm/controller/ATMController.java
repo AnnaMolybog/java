@@ -3,23 +3,22 @@ package otus.atm.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import otus.atm.entity.CassetteInterface;
 import otus.atm.enums.Transaction;
-import otus.atm.service.BalanceService;
-import otus.atm.service.BalanceServiceInterface;
-import otus.atm.service.TransactionService;
+import otus.atm.service.*;
 import otus.atm.wrapper.ErrorResponseWrapper;
 import otus.atm.wrapper.SuccessResponseWrapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ATMController {
-    private final TransactionService transactionProcessor;
+    private final ATMService atmService;
     private final BalanceServiceInterface balanceService;
+    private final CassettesStorageInterface cassettesStorage;
 
     public ATMController() {
-        this.transactionProcessor = new TransactionService(new ArrayList<>());
         this.balanceService = new BalanceService();
+        this.cassettesStorage = new CassettesStorage();
+        this.atmService = new ATMService(this.cassettesStorage,  this.balanceService);
     }
 
     public String executeTransaction(Transaction transaction) throws IOException {
@@ -29,8 +28,9 @@ public class ATMController {
     public String executeTransaction(Transaction transaction, int amount) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            List<CassetteInterface> cassettes = this.transactionProcessor.executeTransaction(transaction, amount);
+            this.atmService.executeTransaction(transaction, amount);
 
+            List<CassetteInterface> cassettes = this.cassettesStorage.getCassettes();
             SuccessResponseWrapper response = new SuccessResponseWrapper();
             response.setSuccess(true);
             response.setTotalBalance(this.balanceService.getTotalSum(cassettes));

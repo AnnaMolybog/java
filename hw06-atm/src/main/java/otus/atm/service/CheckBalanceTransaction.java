@@ -6,8 +6,12 @@ import otus.atm.enums.Transaction;
 import java.util.List;
 
 public class CheckBalanceTransaction extends AbstractBalanceTransaction {
+    public CheckBalanceTransaction(CassettesStorageInterface cassettesStorage, BalanceServiceInterface balanceService) {
+        super(cassettesStorage, balanceService);
+    }
+
     @Override
-    public List<CassetteInterface> process(
+    protected List<CassetteInterface> processInternal(
         List<CassetteInterface> cassettes,
         Transaction transaction,
         int amount
