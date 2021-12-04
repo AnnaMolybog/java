@@ -7,7 +7,7 @@ public class History {
     private final LocalDateTime createdAt;
 
     public History(Message message, LocalDateTime createdAt) throws CloneNotSupportedException {
-        this.message = (Message) message.clone();
+        this.message = message.clone();
         this.createdAt = createdAt;
     }
 

@@ -15,7 +15,7 @@ public class ObjectForMessage implements Cloneable {
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    protected ObjectForMessage clone() throws CloneNotSupportedException {
         ObjectForMessage objectForMessage = (ObjectForMessage) super.clone();
         objectForMessage.setData(new ArrayList<>(data));
         return objectForMessage;

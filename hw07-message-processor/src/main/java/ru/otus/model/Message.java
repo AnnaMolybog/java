@@ -105,10 +105,10 @@ public class Message implements Cloneable {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public Message clone() throws CloneNotSupportedException {
         Message message = (Message) super.clone();
         if (message.getField13() instanceof ObjectForMessage) {
-            message = message.toBuilder().field13((ObjectForMessage) message.getField13().clone()).build();
+            message = message.toBuilder().field13(message.getField13().clone()).build();
         }
         return message;
     }
