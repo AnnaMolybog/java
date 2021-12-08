@@ -6,21 +6,20 @@ import ru.otus.model.Measurement;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
 public class FileLoader implements Loader {
     private final Gson gson = new Gson();
-    private final String path;
+    private final String fileName;
 
-    public FileLoader(String path) {
-        this.path = path;
+    public FileLoader(String fileName) {
+        this.fileName = fileName;
     }
 
     @Override
     public List<Measurement> load() throws IOException {
-        try (var bufferedReader = new BufferedReader(new FileReader(Paths.get(path).toFile()))) {
+        try (var bufferedReader = new BufferedReader(new FileReader(ClassLoader.getSystemResource(fileName).getFile()))) {
             return Arrays.asList(
                 gson.fromJson(
                     bufferedReader,
