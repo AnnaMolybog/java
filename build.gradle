@@ -34,6 +34,8 @@ allprojects {
             dependency("org.openjdk.jmh:jmh-core:${Versions.jmh}")
             dependency("org.openjdk.jmh:jmh-generator-annprocess:${Versions.jmh}")
             dependency("com.google.protobuf:protobuf-java-util:${Versions.protobuf}")
+            dependency("org.testcontainers:junit-jupiter:${Versions.testcontainers}")
+            dependency("org.testcontainers:postgresql:${Versions.testcontainers}")
         }
     }
 
