@@ -12,40 +12,36 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     private final List<Object> appComponents = new ArrayList<>();
     private final Map<String, Object> appComponentsByName = new HashMap<>();
 
-    public AppComponentsContainerImpl(Class<?> initialConfigClass) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public AppComponentsContainerImpl(Class<?> initialConfigClass) throws Exception {
         processConfig(initialConfigClass);
     }
 
-    private void processConfig(Class<?> configClass) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public AppComponentsContainerImpl(Class<?>... initialConfigClasses) throws Exception {
+        for (Class<?> configClass : this.sortConfigClasses(initialConfigClasses)) {
+            processConfig(configClass);
+        }
+    }
+
+    private void processConfig(Class<?> configClass) throws Exception {
         checkConfigClass(configClass);
-        Method[] methods = configClass.getDeclaredMethods();
-        List<Method> orderedAppComponents = new ArrayList<>();
-
-        Arrays.stream(methods)
-                .filter(method -> method.isAnnotationPresent(AppComponent.class))
-                .sorted(Comparator.comparing(method -> method.getAnnotation(AppComponent.class).order()))
-                .forEach(method -> {
-                    if (method.isAnnotationPresent(AppComponent.class)) {
-                        orderedAppComponents.add(method);
-                    }
-                });
-
         var configClassInstance = configClass.getDeclaredConstructor().newInstance();
 
-        orderedAppComponents.forEach(orderedAppComponent -> {
+        this.sortAppComponents(configClass.getDeclaredMethods()).forEach(orderedAppComponent -> {
+            Object appComponentInstance = null;
             try {
-                Object appComponentInstance = this.createAppComponentInstance(
+                appComponentInstance = this.createAppComponentInstance(
                     configClassInstance,
                     orderedAppComponent
                 );
-                appComponentsByName.put(
-                    orderedAppComponent.getAnnotation(AppComponent.class).name(),
-                    appComponentInstance
-                );
-                appComponents.add(appComponentInstance);
             } catch (InvocationTargetException|IllegalAccessException e) {
-                e.printStackTrace(); // TODO: create custom exception
+                e.printStackTrace();
             }
+
+            appComponentsByName.put(
+                orderedAppComponent.getAnnotation(AppComponent.class).name(),
+                appComponentInstance
+            );
+            appComponents.add(appComponentInstance);
         });
     }
 
@@ -53,6 +49,34 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         if (!configClass.isAnnotationPresent(AppComponentsContainerConfig.class)) {
             throw new IllegalArgumentException(String.format("Given class is not config %s", configClass.getName()));
         }
+    }
+    
+    private List<Class<?>> sortConfigClasses(Class<?>... initialConfigClasses) {
+        List<Class<?>> orderedConfigs = new ArrayList<>();
+        Arrays.stream(initialConfigClasses)
+            .filter(initialConfigClass -> initialConfigClass.isAnnotationPresent(AppComponentsContainerConfig.class))
+            .sorted(Comparator.comparing(initialConfigClass -> initialConfigClass.getAnnotation(AppComponentsContainerConfig.class).order()))
+            .forEach(initialConfigClass -> {
+                if (initialConfigClass.isAnnotationPresent(AppComponentsContainerConfig.class)) {
+                    orderedConfigs.add(initialConfigClass);
+                }
+            });
+        return orderedConfigs;
+    }
+
+    private List<Method> sortAppComponents(Method... methods) {
+        List<Method> orderedAppComponents = new ArrayList<>();
+
+        Arrays.stream(methods)
+            .filter(method -> method.isAnnotationPresent(AppComponent.class))
+            .sorted(Comparator.comparing(method -> method.getAnnotation(AppComponent.class).order()))
+            .forEach(method -> {
+                if (method.isAnnotationPresent(AppComponent.class)) {
+                    orderedAppComponents.add(method);
+                }
+            });
+        
+        return orderedAppComponents;
     }
 
     private Object createAppComponentInstance(Object rootClassInstance, Method method) throws InvocationTargetException, IllegalAccessException {
@@ -63,19 +87,24 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         List<Object> params = new ArrayList<>();
         Class<?>[] parameterTypes = method.getParameterTypes();
         Arrays.stream(parameterTypes).forEach(parameterType -> {
-            if (this.getAppComponent(parameterType) != null) {
-                params.add(this.getAppComponent(parameterType));
+            try {
+                if (this.getAppComponent(parameterType) != null) {
+                    params.add(this.getAppComponent(parameterType));
+                }
+            } catch (Exception exception) {
+                exception.printStackTrace();
             }
         });
 
         if (params.size() == method.getParameterCount()) {
             return method.invoke(rootClassInstance, params.toArray());
         }
+
         return null;
     }
 
     @Override
-    public <C> C getAppComponent(Class<C> componentClass) {
+    public <C> C getAppComponent(Class<C> componentClass) throws Exception {
         var appComponentOptional = appComponents
             .stream()
             .filter(appComponent -> appComponent.getClass() == componentClass)
@@ -97,11 +126,15 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
             }
         }
 
-        return null;
+        throw new Exception("Component with class: " + componentClass.getName() + " was not found");
     }
 
     @Override
-    public <C> C getAppComponent(String componentName) {
+    public <C> C getAppComponent(String componentName) throws Exception {
+        if (!appComponentsByName.containsKey(componentName)) {
+            throw new Exception("Component with name: " + componentName + " was not found");
+        }
+        
         return (C) appComponentsByName.get(componentName);
     }
 }
