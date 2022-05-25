@@ -4,7 +4,7 @@ import project.appcontainer.api.AppComponent;
 import project.appcontainer.api.AppComponentsContainerConfig;
 import project.services.*;
 
-@AppComponentsContainerConfig(order = 1)
+@AppComponentsContainerConfig(order = 2)
 public class AppConfig1 {
     @AppComponent(order = 0, name = "equationPreparer")
     public EquationPreparer equationPreparer(){

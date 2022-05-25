@@ -1,5 +1,7 @@
 package project.appcontainer;
 
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
 import project.appcontainer.api.AppComponent;
 import project.appcontainer.api.AppComponentsContainer;
 import project.appcontainer.api.AppComponentsContainerConfig;
@@ -13,10 +15,20 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     private final Map<String, Object> appComponentsByName = new HashMap<>();
 
     public AppComponentsContainerImpl(Class<?> initialConfigClass) throws Exception {
-        processConfig(initialConfigClass);
+        this.init(Collections.singletonList(initialConfigClass));
     }
 
     public AppComponentsContainerImpl(Class<?>... initialConfigClasses) throws Exception {
+        this.init(Arrays.asList(initialConfigClasses));
+    }
+
+    public AppComponentsContainerImpl(String packageName) throws Exception {
+        Reflections reflections = new Reflections(packageName);
+        Set<Class<?>> annotated = reflections.get(Scanners.TypesAnnotated.get(AppComponentsContainerConfig.class).asClass());
+        this.init(new ArrayList<>(annotated));
+    }
+    
+    private void init(List<Class<?>> initialConfigClasses) throws Exception {
         for (Class<?> configClass : this.sortConfigClasses(initialConfigClasses)) {
             processConfig(configClass);
         }
@@ -41,6 +53,12 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
                 orderedAppComponent.getAnnotation(AppComponent.class).name(),
                 appComponentInstance
             );
+            
+            var existentAppComponent = this.getAppComponent(appComponentInstance.getClass());
+            if (existentAppComponent != null ) {
+                appComponents.remove(existentAppComponent);
+            }
+            
             appComponents.add(appComponentInstance);
         });
     }
@@ -51,9 +69,9 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         }
     }
     
-    private List<Class<?>> sortConfigClasses(Class<?>... initialConfigClasses) {
+    private List<Class<?>> sortConfigClasses(List<Class<?>> initialConfigClasses) {
         List<Class<?>> orderedConfigs = new ArrayList<>();
-        Arrays.stream(initialConfigClasses)
+        initialConfigClasses.stream()
             .filter(initialConfigClass -> initialConfigClass.isAnnotationPresent(AppComponentsContainerConfig.class))
             .sorted(Comparator.comparing(initialConfigClass -> initialConfigClass.getAnnotation(AppComponentsContainerConfig.class).order()))
             .forEach(initialConfigClass -> {
@@ -104,7 +122,7 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     }
 
     @Override
-    public <C> C getAppComponent(Class<C> componentClass) throws Exception {
+    public <C> C getAppComponent(Class<C> componentClass) {
         var appComponentOptional = appComponents
             .stream()
             .filter(appComponent -> appComponent.getClass() == componentClass)
@@ -126,7 +144,7 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
             }
         }
 
-        throw new Exception("Component with class: " + componentClass.getName() + " was not found");
+        return null;
     }
 
     @Override
