@@ -54,7 +54,9 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
             Method[] configClassDeclaredMethods = configClass.getDeclaredMethods();
             Object configClassInstance = createConfigClassInstance(configClass);
 
-            Arrays.stream(configClassDeclaredMethods).forEach(configClassDeclaredMethod -> {
+            Arrays.stream(configClassDeclaredMethods)
+                    .filter(configClassDeclaredMethod -> configClassDeclaredMethod.isAnnotationPresent(AppComponent.class))
+                    .forEach(configClassDeclaredMethod -> {
                 if (configClassDeclaredMethod.isAnnotationPresent(AppComponent.class)) {
                     String appComponentName = configClassDeclaredMethod.getAnnotation(AppComponent.class).name();
 
@@ -112,14 +114,10 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         }
 
         try {
-            if (appComponentWrapper.getMethod().getParameterCount() == 0) {
-                instance = appComponentWrapper.getMethod().invoke(appComponentWrapper.getConfigClassInstance());
-            } else {
-                instance = appComponentWrapper.getMethod().invoke(
-                    appComponentWrapper.getConfigClassInstance(),
-                    parametersInstances.toArray()
-                );
-            }
+            instance = appComponentWrapper.getMethod().invoke(
+                appComponentWrapper.getConfigClassInstance(),
+                parametersInstances.toArray()
+            );
 
             if (instance == null) {
                 throw new RuntimeException(
@@ -148,18 +146,17 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         Parameter[] parameters = appComponentWrapper.getMethod().getParameters();
         List<Object> parametersInstances = new ArrayList<>();
 
-        if (appComponentWrapper.getMethod().getParameterCount() > 0) {
-            for (Parameter parameter : parameters) {
-                for (AppComponentWrapper<?> appComponent : appComponents) {
-                    if (isAppComponentCompatible(appComponent, parameter.getType()) && appComponent.getInstance() != null) {
-                        if (parameter.isAnnotationPresent(Qualifier.class)) {
-                            String qualifiedClass = parameter.getAnnotation(Qualifier.class).name();
-                            if (qualifiedClass.equals(appComponent.getComponentName())) {
-                                parametersInstances.add(appComponent.getInstance());
-                            }
-                        } else {
+
+        for (Parameter parameter : parameters) {
+            for (AppComponentWrapper<?> appComponent : appComponents) {
+                if (isAppComponentCompatible(appComponent, parameter.getType()) && appComponent.getInstance() != null) {
+                    if (parameter.isAnnotationPresent(Qualifier.class)) {
+                        String qualifiedClass = parameter.getAnnotation(Qualifier.class).name();
+                        if (qualifiedClass.equals(appComponent.getComponentName())) {
                             parametersInstances.add(appComponent.getInstance());
                         }
+                    } else {
+                        parametersInstances.add(appComponent.getInstance());
                     }
                 }
             }
@@ -170,16 +167,7 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
 
     private Object createConfigClassInstance(Class<?> configClass) {
         try {
-            Object configClassInstance = configClass.getDeclaredConstructors()[0].newInstance();
-            if (configClassInstance == null) {
-                throw new RuntimeException(
-                    String.format(
-                        "Config class %s instance was not created",
-                        configClass.getName()
-                    )
-                );
-            }
-            return configClassInstance;
+            return configClass.getDeclaredConstructors()[0].newInstance();
         } catch (IllegalAccessException|InstantiationException|InvocationTargetException exception) {
             throw new RuntimeException(
                 String.format(
@@ -229,7 +217,7 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     private boolean isAppComponentCompatible(AppComponentWrapper<?> appComponentWrapper, Class<?> searchedClass) {
         return searchedClass.isAssignableFrom(appComponentWrapper.getAppComponentType()) ||
                 (appComponentWrapper.getInstance() != null &&
-                        searchedClass.isAssignableFrom(appComponentWrapper.getInstance().getClass()));
+                searchedClass.isAssignableFrom(appComponentWrapper.getInstance().getClass()));
     }
 
     @Override
