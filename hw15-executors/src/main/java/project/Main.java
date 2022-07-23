@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
-    private String lastAction = "Read";
+    private String lastAction = "read";
     private final int[] arrayOfNumbers = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
 
     private synchronized void newAction(String action) {
