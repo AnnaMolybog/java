@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 // Этот класс нужно реализовать
 public class SensorDataProcessorBuffered implements SensorDataProcessor {
@@ -23,10 +21,6 @@ public class SensorDataProcessorBuffered implements SensorDataProcessor {
     private final SensorDataBufferedWriter writer;
 
     PriorityBlockingQueue<SensorData> dataBuffer;
-
-    List<SensorData> bufferedData = new ArrayList<>();
-
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public SensorDataProcessorBuffered(int bufferSize, SensorDataBufferedWriter writer) {
         this.bufferSize = bufferSize;
@@ -49,6 +43,7 @@ public class SensorDataProcessorBuffered implements SensorDataProcessor {
 
     public void flush() {
         try {
+            List<SensorData> bufferedData = new ArrayList<>();
             while (!dataBuffer.isEmpty()) {
                 dataBuffer.drainTo(bufferedData);
                 writer.writeBufferedData(bufferedData);

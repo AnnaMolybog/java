@@ -9,10 +9,10 @@ import project.protobuf.generated.GenerateSequenceServiceGrpc;
 import project.protobuf.generated.SequenceRequest;
 import project.protobuf.generated.SequenceResponse;
 
-import java.util.Stack;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class GRPCClient {
 
@@ -24,9 +24,13 @@ public class GRPCClient {
 
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
-    private static final Stack<SequenceResponse> valuesFromServer = new Stack<>();
+    private static final AtomicLong valuesFromServer = new AtomicLong();
     private static long currentValue = 0;
     private static int counter = 0;
+
+    public GRPCClient() {
+        valuesFromServer.set(0);
+    }
 
     public static void main(String[] args) {
 
@@ -59,8 +63,7 @@ public class GRPCClient {
 
     private static void processSequence()
     {
-        long lastValueFromServer = !valuesFromServer.isEmpty() ? valuesFromServer.pop().getNewValue() : 0;
-        currentValue = currentValue + lastValueFromServer + 1;
+        currentValue = currentValue + valuesFromServer.getAndSet(0) + 1;
         logger.info("current value: " + currentValue);
     }
 
@@ -69,7 +72,7 @@ public class GRPCClient {
         return new StreamObserver<>() {
             @Override
             public void onNext(SequenceResponse sequenceResponse) {
-                valuesFromServer.push(sequenceResponse);
+                valuesFromServer.set(sequenceResponse.getNewValue());
                 logger.info("new value:" + sequenceResponse.getNewValue());
             }
 
