@@ -6,8 +6,6 @@ public interface Versions {
     String glassfishJson = "1.1.4";
     String protobuf = "3.19.4";
 
-    String testcontainers = "1.15.3";
-
     String lombok = "1.18.22";
     String gson = "2.8.9";
 
@@ -27,4 +25,10 @@ public interface Versions {
     String bootstrap = "5.1.3";
     String springDocOpenapiUi = "1.6.7";
     String jsr305 = "3.0.2";
+
+    String grpc = "1.44.1";
+    String errorProneAnnotations = "2.11.0";
+    String tomcatAnnotationsApi = "6.0.53";
+
+    String kafkaClients = "3.0.0";
 }
